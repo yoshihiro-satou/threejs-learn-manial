@@ -1,11 +1,10 @@
 import * as THREE from "three";
-
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 function main() {
 
   const canvas = document.querySelector('#webgl');
   const renderer = new THREE.WebGLRenderer( { antialias: true, canvas} );
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  const gui = new GUI();
 
   const fov = 40;
   const aspect = innerWidth / innerHeight;
@@ -33,17 +32,78 @@ function main() {
   const sphereGeometry = new THREE.SphereGeometry(
     radius, widthSegments, heightSegments);
 
+    const solarSystem = new THREE.Object3D();
+    scene.add(solarSystem);
+    objects.push(solarSystem);
+
     const sunMaterial = new THREE.MeshPhongMaterial( { emissive: 0xffff00 });
     const sunMesh = new THREE.Mesh( sphereGeometry, sunMaterial );
     sunMesh.scale.set(5, 5, 5);
-    scene.add(sunMesh);
+    solarSystem.add(sunMesh);
     objects.push(sunMesh);
 
-    const earthMaterial = new THREE.MeshPhongMaterial({ color: 0x2233ff, emissive: 0x1112244 });
+    const earthOrbit = new THREE.Object3D();
+    earthOrbit.position.x = 10;
+    solarSystem.add(earthOrbit);
+    objects.push(earthOrbit);
+
+    const earthMaterial = new THREE.MeshPhongMaterial({ color: 0x2233ff, emissive: 0x112244 });
     const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial);
-    earthMesh.position.x = 10;
-    scene.add(earthMesh);
+    earthOrbit.add(earthMesh);
     objects.push(earthMesh);
+
+    const moonOrbit = new THREE.Object3D();
+    moonOrbit.position.x = 2;
+    earthOrbit.add(moonOrbit);
+
+    const moonMaterial = new THREE.MeshPhongMaterial({ color: 0x888888, emissive: 0x222222 });
+    const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
+    moonMesh.scale.set(.5, .5, .5);
+    moonOrbit.add(moonMesh);
+    objects.push(moonMesh);
+
+    class AxisGridHelper {
+
+      constructor( node, units= 10) {
+
+        const axes = new THREE.AxesHelper();
+        axes.material.depthTest = false;
+        axes.renderOrder = 2;
+        node.add(axes);
+
+        const grid = new THREE.GridHelper( units, units);
+        grid.material.depthTest = false;
+        grid.renderOrder = 1;
+        node.add(grid);
+
+        this.grid = grid;
+        this.axes = axes;
+        this.visible = false;
+
+      }
+      get visible() {
+
+        return this._visible;
+      }
+      set visible( v ) {
+
+        this._visible = v;
+        this.grid.visible = v;
+        this.axes.visible = v;
+
+      }
+    }
+
+    function makeAxisGrid( node, label, units ) {
+      const helper = new AxisGridHelper( node, units );
+      gui.add( helper, 'visible' ).name( label );
+    }
+
+    makeAxisGrid( solarSystem, 'solarSystem', 26);
+    makeAxisGrid( sunMesh, 'sunMesh');
+    makeAxisGrid( earthOrbit, 'earthOrbit' );
+    makeAxisGrid( moonOrbit, 'moonOrbit' );
+    makeAxisGrid( moonMesh, 'moonMesh' );
 
     function resizeRendererToDisplaySize( renderer ) {
       const canvas = renderer.domElement;

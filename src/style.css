@@ -7,3 +7,9 @@
   height: 100%;
   display: block;
 }
+.lil-gui {
+  height: 50%;
+}
+.controller {
+  height: 20%;
+}
